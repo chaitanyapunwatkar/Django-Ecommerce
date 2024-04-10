@@ -17,6 +17,7 @@ class EditProductDetails(APIView):
     permission_classes = [IsAuthenticated, IsSalesPerson]
     
     def post(self, request):
+        
         name = request.data.get('name')
         units = request.data.get('units')
         try:
@@ -39,21 +40,27 @@ class AddProductDetails(APIView):
         name = data.get('name')
         type = data.get('type')
         manufacturer = data.get('manufacturer')
-        unit = data.get('units')
+        units = data.get('units')
         price = data.get('price')
+        store_name = data.get('store')
+        try:
+            store_id = Outlet.objects.get(name=store_name).id
+            product_data = {
+                "name": name, "type": type,
+                "units": units, "price": price,
+                "manufacturer": manufacturer,
+                "store": store_id
+            }
+            
+            serializer = ProductSerializer(data=product_data)
+            
+            if serializer.is_valid():   
+                serializer.save()
+                return Response({'data':serializer.data, 'msg': "Product Details stored Successfully"}, 
+                                status=status.HTTP_201_CREATED)
+        except Exception as e:
+            pass
         
-        product_data = {
-            "name": name, "type": type,
-            "unit": unit, "price": price,
-            "manufacturer": manufacturer
-        }
-        
-        serializer = ProductSerializer(data=product_data)
-        
-        if serializer.is_valid():   
-            serializer.save()
-            return Response({'data':serializer.data, 'msg': "Product Details stored Successfully"}, 
-                            status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
         
 
@@ -122,19 +129,28 @@ class GetProduct(generics.ListAPIView):
     
     def post(self, request):
         data = request.data
+        serialized_data_list = []
         store_name = data.get("store_name")
         product_name = data.get("product_name")
         
-        if store_name:
-            product_data = Product.objects.filter(store__name=store_name)
-        elif product_name:
-            product_data = Product.objects.filter(name=product_name)
-        else:
-            product_data = Product.objects.all()
-            
-        serializer = ProductSerializer(product_data)
+        try:
+            if store_name:
+                product_data = Product.objects.filter(store__name=store_name)
+            elif product_name:
+                product_data = Product.objects.filter(name=product_name)
+            else:
+                product_data = Product.objects.all()
         
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            if product_data.exists():        
+                serializer = ProductSerializer(product_data, many=True)
+            else: 
+                return Response({"error": f"No product data available for store: {store_name}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_412_PRECONDITION_FAILED)
+            
+        
+        return Response({"data":serializer.data}, status=status.HTTP_200_OK)
         
 
 class StoreListView(generics.ListAPIView):
