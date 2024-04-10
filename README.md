@@ -10,9 +10,9 @@ This project contains an e-commerce multitenant Platform. The platform can have 
 Below commands for Windows OS
 
 1. Install Virtual environment
-    pip install virtualenv 
+    ''' pip install virtualenv '''
 2. Activate Virtual environment
-    python -m venv venv
+   ''' python -m venv venv '''
 3. Install requirements.txt
-   pip install -r requirements.txt
+  ''' pip install -r requirements.txt '''
      
