@@ -22,6 +22,7 @@ class User(AbstractUser):
         ('customer', 'Customer'),
         ('supervisor', 'Supervisor'),
         ('sales_person', 'Sales Person'),
+        ('samta_admin', 'Samta Admin')
     )
 
     role = models.CharField(max_length=15, choices=ROLE_CHOICES)
